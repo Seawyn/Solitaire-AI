@@ -86,6 +86,7 @@ def areEqual(board1, board2):
 cost = float('inf')
 min_path = []
 current_path = []
+
 class Solitaire(Problem):
 
     def __init__(self,board):
