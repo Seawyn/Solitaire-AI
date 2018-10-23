@@ -1,6 +1,7 @@
 #Artur Fortunato 86388 Jorge Pacheco 86457
 
 from search import *
+import copy
 
 #Tipo content
 
@@ -62,13 +63,14 @@ def board_moves(b):
     return toReturn
 
 def board_perform_move(b, move):
-    b[move[0][0]][move[0][1]] = c_empty()
-    b[move[1][0]][move[1][1]] = c_peg()
+    novo = copy.deepcopy(b)
+    novo[move[0][0]][move[0][1]] = c_empty()
+    novo[move[1][0]][move[1][1]] = c_peg()
     if (move[0][0] == move[1][0]):
-        b[ move[0][0] ][round( (move[0][1] + move[1][1]) / 2 ) ] = c_empty()
+        novo[ move[0][0] ][round( (move[0][1] + move[1][1]) / 2 ) ] = c_empty()
     else:
-        b[round( (move[0][0] + move[1][0]) / 2 )][ move[0][1] ] = c_empty()
-    return b
+        novo[round( (move[0][0] + move[1][0]) / 2 )][ move[0][1] ] = c_empty()
+    return novo
 
 def areEqual(board1, board2):
     if len(board1) != board2 or len(board1[0]) != len(board2[0]):
@@ -82,9 +84,6 @@ def areEqual(board1, board2):
             if line1[j] != line2[j]:
                 return False
     return True
-
-def xx_invalid_solution(board, node):
-    return False
 
 class sol_state():
     def __init__(self, board):
@@ -105,22 +104,21 @@ class sol_state():
         return counter
 
 
-'''cost = float('inf')
-min_path = []
+INFINITY = float('inf')
+'''min_path = []
 current_path = []'''
 
 class solitaire(Problem):
 
     def __init__(self,board):
         self.board = board
-        self.numberOfPegs = self.getPegs()
         self.initial = sol_state(board)
 
-    def getPegs(self):
+    def getPegs(self, state):
         number_of_pegs = 0
 
-        for i in range(len(self.board)):
-            line = self.board[i]
+        for i in range(len(state.board)):
+            line = state.board[i]
             for j in range(len(line)):
                 number_of_pegs += (1 if is_peg( line[j] ) else 0)
         return number_of_pegs
@@ -129,11 +127,10 @@ class solitaire(Problem):
         return(board_moves(state.board))
 
     def result(self, state, action): 
-        self.board = board_perform_move(state.board, action)
-        return self
+        return sol_state(board_perform_move(state.board, action))
 
     def goal_test(self, state): 
-        return(self.getPegs() == 1)
+        return(self.getPegs(state) == 1)
 
     def path_cost(self, c, state1, action, state2):
         '''global cost
@@ -153,18 +150,18 @@ class solitaire(Problem):
             current_path = current_path[:-1] '''
         return c + 1
         
-    def solve(self, state1):
-        if self.goal_test(state1):
-            print(state1)
+    def canFinish(self, node):
+        if self.goal_test(node.state):
             return True
-        moves = board_moves(state1.board)
+        moves = board_moves(node.state.board)
         for move in moves:
-            temp = board_perform_move(state1, move)
-            if(self.solve(temp)):
+            node.state.board = board_perform_move(node.state.board, move)
+            if(self.canFinish(node)):
                 return True
         return False
 
     def h(self, node):
-        return self.getPegs(node.board) - 1
+        temp = self.canFinish(copy.deepcopy(node))
+        return 0 if temp else INFINITY
 
-print(xx_invalid_solution([["_","O","O","O","_"],["O","_","O","_","O"],["_","O","_","O","_"],["O","_","O","_","_"],["_","O","_","_","_"]],depth_first_tree_search(solitaire([["_","O","O","O","_"],["O","_","O","_","O"],["_","O","_","O","_"],["O","_","O","_","_"],["_","O","_","_","_"]]))))
+print([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]],greedy_search(solitaire([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]])))
