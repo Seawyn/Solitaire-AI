@@ -2,8 +2,13 @@
 
 from search import *
 import copy
-
+import os
+#import psutil
 #Tipo content
+
+def printBoard(board):
+    for i in range(len(board)):
+        print(board[i])
 
 def c_peg():
     return "O"
@@ -85,12 +90,15 @@ def areEqual(board1, board2):
                 return False
     return True
 
+def numOfPegsInCorners(b):
+    return int(not is_peg(b[0][0])) + int(not is_peg(b[0][len(b) - 1])) + int(not is_peg(b[len(b) - 1][0])) + int(not is_peg(b[len(b) - 1][len(b) - 1]))
+
 class sol_state():
     def __init__(self, board):
         self.board = board
 
     def __lt__(self, other_sol_state):                          #Volatile
-        return self.num_pegs(self.board) > self.num_pegs(other_sol_state.board)
+        return self.board < other_sol_state.board#self.num_pegs(self.board) > self.num_pegs(other_sol_state.board)
 
     def board(self):
         return self.board
@@ -151,7 +159,7 @@ class solitaire(Problem):
         return c + 1
         
     def canFinish(self, node):
-        if self.goal_test(node.state):
+        if self.goal_test(node.state): 
             return True
         moves = board_moves(node.state.board)
         for move in moves:
@@ -161,7 +169,9 @@ class solitaire(Problem):
         return False
 
     def h(self, node):
-        temp = self.canFinish(copy.deepcopy(node))
-        return 0 if temp else INFINITY
+        return self.getPegs(node.state) + len(board_moves(node.state.board)) - 1 #self.getPegs(node.state) if self.canFinish(copy.deepcopy(node)) else INFINITY#len(board_moves(node.state.board)) if self.canFinish(copy.deepcopy(node)) else INFINITY
+'''print([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]],greedy_search(solitaire([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]])))
+print("Memoria")
+print(psutil.Process(os.getpid()).memory_info().rss) ''' 
 
-print([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]],greedy_search(solitaire([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]])))
+print([["O","O","O","X","X","X"],["O","_","O","O","O","O"],["O","O","O","O","O","O"],["O","O","O","O","O","O"]],astar_search(solitaire([["O","O","O","X","X","X"],["O","_","O","O","O","O"],["O","O","O","O","O","O"],["O","O","O","O","O","O"]])))
