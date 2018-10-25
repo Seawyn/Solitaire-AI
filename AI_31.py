@@ -2,13 +2,9 @@
 
 from search import *
 import copy
-import os
+#import os
 #import psutil
 #Tipo content
-
-def printBoard(board):
-    for i in range(len(board)):
-        print(board[i])
 
 def c_peg():
     return "O"
@@ -77,31 +73,12 @@ def board_perform_move(b, move):
         novo[round( (move[0][0] + move[1][0]) / 2 )][ move[0][1] ] = c_empty()
     return novo
 
-def areEqual(board1, board2):
-    if len(board1) != board2 or len(board1[0]) != len(board2[0]):
-        return False
-
-    for i in range(len(board1)):
-        line1 = board1[i]
-        line2 = board2[i]
-
-        for j in range(len(line1)):
-            if line1[j] != line2[j]:
-                return False
-    return True
-
-def numOfPegsInCorners(b):
-    return int(not is_peg(b[0][0])) + int(not is_peg(b[0][len(b) - 1])) + int(not is_peg(b[len(b) - 1][0])) + int(not is_peg(b[len(b) - 1][len(b) - 1]))
-
 class sol_state():
     def __init__(self, board):
         self.board = board
 
     def __lt__(self, other_sol_state):                          #Volatile
-        return self.board < other_sol_state.board#self.num_pegs(self.board) > self.num_pegs(other_sol_state.board)
-
-    def board(self):
-        return self.board
+        return len(board_moves(self.board)) > len(board_moves(other_sol_state.board))
 
     def num_pegs(self, board):
         counter = 0
@@ -111,16 +88,12 @@ class sol_state():
                     counter += 1
         return counter
 
-
-INFINITY = float('inf')
-'''min_path = []
-current_path = []'''
-
 class solitaire(Problem):
 
     def __init__(self,board):
-        self.board = board
         self.initial = sol_state(board)
+        Problem(self, self.initial)
+        self.number_of_x = self.getBlockeds(self.initial)
 
     def getPegs(self, state):
         number_of_pegs = 0
@@ -131,6 +104,12 @@ class solitaire(Problem):
                 number_of_pegs += (1 if is_peg( line[j] ) else 0)
         return number_of_pegs
 
+    def getBlockeds(self, state):
+        number_of_x = 0
+        for l in state.board:
+            number_of_x += l.count(c_blocked())
+        return number_of_x
+    
     def actions(self, state):
         return(board_moves(state.board))
 
@@ -138,39 +117,11 @@ class solitaire(Problem):
         return sol_state(board_perform_move(state.board, action))
 
     def goal_test(self, state): 
-        return(self.getPegs(state) == 1)
+        return self.getPegs(state) == 1
 
     def path_cost(self, c, state1, action, state2):
-        '''global cost
-        global min_path
-        global current_path
-
-        if areEqual(state1, state2):
-            cost = min(c, cost)
-            min_path = current_path
-        else:
-            if action != []:
-                state1 = board_perform_move(state1, action)
-                current_path.append(action)
-            actions = board_moves(state1)
-            for new_action in actions:
-                self.path_cost(c + 1, state1, new_action, state2)
-            current_path = current_path[:-1] '''
         return c + 1
-        
-    def canFinish(self, node):
-        if self.goal_test(node.state): 
-            return True
-        moves = board_moves(node.state.board)
-        for move in moves:
-            node.state.board = board_perform_move(node.state.board, move)
-            if(self.canFinish(node)):
-                return True
-        return False
 
     def h(self, node):
-        return self.getPegs(node.state) * len(board_moves(node.state.board))
-'''print([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]],greedy_search(solitaire([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]])))
-print("Memoria")
-print(psutil.Process(os.getpid()).memory_info().rss) ''' 
+        return self.getPegs(node.state) * self.getBlockeds(node.state)
 

@@ -169,7 +169,11 @@ class solitaire(Problem):
         return False
 
     def h(self, node):
-        return self.getPegs(node.state) * len(board_moves(node.state.board))
+        blocked = 0
+        for i in node.state.board:
+            blocked += i.count(c_blocked())
+        return self.getPegs(node.state) * len(board_moves(node.state.board)) - 1
+        #return self.getPegs(node.state) if self.canFinish(copy.deepcopy(node)) else INFINITY#len(board_moves(node.state.board)) if self.canFinish(copy.deepcopy(node)) else INFINITY
 '''print([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]],greedy_search(solitaire([["O","O","O","X","X"],["O","O","O","O","O"],["O","_","O","_","O"],["O","O","O","O","O"]])))
 print("Memoria")
 print(psutil.Process(os.getpid()).memory_info().rss) ''' 
